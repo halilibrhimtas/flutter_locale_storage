@@ -1,11 +1,18 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_locale_storage/boxes.dart';
 import 'package:flutter_locale_storage/data/entity/person.dart';
+import 'package:flutter_locale_storage/data/entity/student.dart';
 import 'package:flutter_locale_storage/services/database_service.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(StudentAdapter());
   runApp(const MyApp());
 }
 
@@ -40,11 +47,12 @@ class _HomePageState extends State<HomePage> {
   String duration = "Not Measured";
   String storageName = "Not Determined";
   String type = "Not Determined";
-  String value = "no data entered yet";
+  String value = "No data entered yet";
 
   @override
   void initState() {
     getSharedPreferences();
+    openBox();
     super.initState();
   }
 
@@ -55,6 +63,10 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       log("Shared Preferences init error: ${e.toString()}");
     }
+  }
+
+  openBox() async {
+      boxStudents = await Hive.openBox<Student>('studentBox');
   }
 
   @override
@@ -136,7 +148,7 @@ class _HomePageState extends State<HomePage> {
                           saveDate: DateTime.now().toString());
                       await DatabaseService.addPerson(person);
                       stopWatch.stop();
-                      log(person!.id.toString());
+                      log(person.id.toString());
                       log(person.name.toString());
                       log(person.saveDate.toString());
                       setState(() {
@@ -155,7 +167,24 @@ class _HomePageState extends State<HomePage> {
                 Padding(
                   padding: const EdgeInsets.all(3.0),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      setState(() {
+                        final stopWatch = Stopwatch()..start();
+                        Student student = Student(
+                            id: 2,
+                            name: textEditingController.text,
+                            saveDate: DateTime.now().toString());
+                        boxStudents!.put('student1', student);
+                        stopWatch.stop();
+                        log(student.id.toString());
+                        log(student.name.toString());
+                        log(student.saveDate.toString());
+                        duration = stopWatch.elapsed.toString();
+                        storageName = "Hive";
+                        type = "Write";
+                        value = textEditingController.text;
+                      });
+                    },
                     style:
                         ElevatedButton.styleFrom(backgroundColor: Colors.brown),
                     child: const Text("Hive",
@@ -225,7 +254,20 @@ class _HomePageState extends State<HomePage> {
                   Padding(
                     padding: const EdgeInsets.all(3.0),
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        setState(() {
+                          final stopWatch = Stopwatch()..start();
+                          Student? student = boxStudents!.get('student1');
+                          value = student == null ? "Value null" : student.name!;
+                          stopWatch.stop();
+                          log(student!.id.toString());
+                          log(student.name.toString());
+                          log(student.saveDate.toString());
+                          duration = stopWatch.elapsed.toString();
+                          storageName = "Hive";
+                          type = "Read";
+                        });
+                      },
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blueAccent),
                       child: const Text("Hive",

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter_locale_storage/data/entity/person.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -7,7 +9,9 @@ class DatabaseService {
   static const String _dbName = "persons.db";
 
   static Future<Database> _getDB() async {
-    return openDatabase(join(await getDatabasesPath(), _dbName),
+    var databasesPath = await getDatabasesPath();
+    log(databasesPath);
+    return openDatabase(join(databasesPath, _dbName),
         onCreate: (db, version) async => await db.execute(
             "CREATE TABLE Person(id INTEGER PRIMARY KEY, name TEXT NOT NULL, saveDate TEXT NOT NULL);"), version: _version);
   }
