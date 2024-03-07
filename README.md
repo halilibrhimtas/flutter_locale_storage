@@ -1,4 +1,4 @@
-# flutter_locale_storage
+# Flutter Locale Storage
 
 A new Flutter project.
 
